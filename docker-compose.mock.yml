@@ -1,0 +1,18 @@
+# Demo sin backend real: frontend + mock en memoria
+# Uso: docker compose -f docker-compose.mock.yml up --build  ->  http://localhost:8080
+name: biblioteca-mock
+services:
+  backend:
+    image: node:20-alpine
+    working_dir: /app
+    command: node mock/server.js
+    volumes: ["./mock:/app/mock:ro"]
+    environment: { PORT: "3000" }
+  frontend:
+    build: .
+    environment:
+      API_BASE_URL: /api
+      BACKEND_HOST: backend
+      BACKEND_PORT: "3000"
+    depends_on: [backend]
+    ports: ["8080:80"]

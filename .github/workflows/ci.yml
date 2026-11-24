@@ -1,0 +1,19 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Sintaxis JS
+        run: for f in js/*.js mock/*.js; do node --check "$f"; done
+      - name: Levantar mock
+        run: node mock/server.js & sleep 2
+      - name: Smoke test contra mock (incluye CRUD)
+        run: CRUD=1 PAYLOAD='{"titulo":"CI"}' bash scripts/smoke-test.sh http://localhost:3000
+      - name: Build imagen frontend
+        run: docker build -t biblioteca-web:ci .

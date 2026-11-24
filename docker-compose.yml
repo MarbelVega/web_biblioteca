@@ -1,0 +1,65 @@
+# Stack completo: BD + api_biblioteca + frontend
+# Estructura esperada de carpetas (clonar ambos repos lado a lado):
+#   ./api_biblioteca/   <- https://github.com/MarbelVega/api_biblioteca
+#   ./biblioteca-web/   <- este repo
+# Uso: cp .env.example .env && docker compose up -d --build
+#
+# ⚠️ SUPUESTOS a validar contra api_biblioteca (ver docs/CONFIGURACION_BACKEND.md):
+#   - Motor MySQL y script SQL de esquema en la raíz del backend (BACKEND_SQL_FILE)
+#   - El backend lee las variables DB_* y escucha en BACKEND_PORT
+#   - El backend tiene Dockerfile; si no, usa el incluido en docker/backend.Dockerfile
+name: biblioteca
+
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ${BACKEND_PATH}/${BACKEND_SQL_FILE}:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    ports:
+      - "127.0.0.1:${DB_PORT_HOST}:3306"   # solo localhost
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ${BACKEND_PATH}
+      dockerfile: ${BACKEND_DOCKERFILE}
+    restart: unless-stopped
+    environment:
+      PORT: ${BACKEND_PORT}
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      CORS_ORIGIN: ${FRONTEND_ORIGIN}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${BACKEND_PORT}:${BACKEND_PORT}"
+
+  frontend:
+    build: .
+    restart: unless-stopped
+    environment:
+      API_BASE_URL: /api          # vía proxy nginx (sin CORS)
+      BACKEND_HOST: backend
+      BACKEND_PORT: ${BACKEND_PORT}
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT}:80"
+
+volumes:
+  db_data:

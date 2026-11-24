@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src *; object-src 'none'; base-uri 'self'; form-action 'self'" />
+  <title>Biblioteca Web · Cliente de api_biblioteca</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">📚 <span>Biblioteca Web</span></div>
+    <div class="status" id="apiStatus" title="Estado del backend">
+      <span class="dot" id="statusDot"></span><span id="statusText">Sin verificar</span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="sidebar" id="sidebar" aria-label="Navegación principal">
+      <a href="#/dashboard" data-route="dashboard">🏠 Dashboard</a>
+      <div id="resourceLinks"></div>
+      <hr />
+      <a href="#/settings" data-route="settings">⚙️ Configuración</a>
+      <a href="#/logs" data-route="logs">🧾 Bitácora HTTP</a>
+      <a href="#/help" data-route="help">❓ Ayuda</a>
+    </nav>
+
+    <main id="view" class="content" tabindex="-1" aria-live="polite"></main>
+  </div>
+
+  <!-- Modal para crear / editar -->
+  <dialog id="formDialog">
+    <form id="recordForm" method="dialog">
+      <h2 id="formTitle">Registro</h2>
+      <div class="form-mode">
+        <label><input type="checkbox" id="jsonMode" /> Editar como JSON</label>
+      </div>
+      <div id="formFields"></div>
+      <textarea id="jsonEditor" class="hidden" rows="14" spellcheck="false"></textarea>
+      <p class="error" id="formError" role="alert"></p>
+      <div class="actions">
+        <button type="button" id="cancelBtn" class="btn secondary">Cancelar</button>
+        <button type="submit" id="saveBtn" class="btn">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- Orden importa: env.js (opcional, generado en Docker) -> config.js -> api.js -> app.js -->
+  <script src="js/env.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
